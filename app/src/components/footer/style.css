@@ -1,0 +1,12 @@
+li{
+     font-size: 14px;
+     margin: 0 5px;
+     list-style-type: none;
+}
+a{
+     text-decoration: none;
+}
+
+.footer-container  p{
+     font-size: 14px;
+}
