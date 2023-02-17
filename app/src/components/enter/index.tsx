@@ -2,6 +2,7 @@ import {useSearchParams } from "react-router-dom"
 import NavBar from "../navbar/navbar"
 import EnterForm from "./enter"
 import { Link } from "react-router-dom"
+import Footer from "../footer"
 
 
 
@@ -48,6 +49,7 @@ export default function Enter(){
                          }
                     </div>
                </div>
+               <Footer/>
           </div>
      )
 }
