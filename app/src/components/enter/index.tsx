@@ -8,8 +8,32 @@ import Footer from "../footer"
 
 export default function Enter(){
      const searchParams = useSearchParams()
-     console.log(searchParams[0].get('state'))
      const enterState = searchParams[0].get('state')
+     function enterWithGithub(){
+          interface OauthParams {
+               client_id:string
+               redirect_uri:string
+               scope:string
+          }
+          const {
+               REACT_APP_GITHUB_CLIENT_ID,
+               REACT_APP_GITHUB_REDIRECT_URI,
+               REACT_APP_GITHUB_SCOPE
+          } = process.env
+          const githubOauthParam : OauthParams = {
+               client_id:REACT_APP_GITHUB_CLIENT_ID as string,
+               redirect_uri:REACT_APP_GITHUB_REDIRECT_URI as string,
+               scope:REACT_APP_GITHUB_SCOPE as string
+          }
+          const {
+               client_id,
+               redirect_uri,
+               scope
+          } = githubOauthParam
+          window.location.href = 
+          `https://github.com/login/oauth/authorize?client_id=${client_id}&scope=${scope}&redirect_uri=${redirect_uri}`
+
+}
      return (
           <div>
                <div>
@@ -21,7 +45,9 @@ export default function Enter(){
                          <big className="text-center fw-bold">Welcome to DEV Community 👩‍💻👩‍💻</big>
                          <span className="text-center">DEV Community 👩‍💻👩‍💻 is a community of 1,003,540 amazing developers</span>
                          <div className="d-flex flex-column justify-content-center my-2">
-                              <button className="btn btn-dark my-2">Continue with GitHub</button>
+                              <button
+                              onClick={enterWithGithub}
+                              className="btn btn-dark my-2">Continue with GitHub</button>
                               <button className="btn btn-primary">Continue with Twitter</button>
                          </div>
                          <div className="d-flex align-items-center justify-content-center my-3">

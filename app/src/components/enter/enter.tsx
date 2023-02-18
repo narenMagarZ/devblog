@@ -1,10 +1,7 @@
 import { Link, useSearchParams } from "react-router-dom"
-import NavBar from "../navbar/navbar"
 
 export default function EnterForm(){
-     const searchParams = useSearchParams()
-     console.log(searchParams[0].get('state'))
-
+     console.log(process.env.REACT_APP_GITHUB_CLIENT_ID)
      return (
           <form>
                <div className="mb-3">
