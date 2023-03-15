@@ -1,20 +1,27 @@
 # DEVBLOG
 
 ## Introduction  
-This project is a clone of [dev](https://dev.to) for learning purposes and is aimed at developers worlwide.
+This project is a clone of [dev](https://dev.to) and build for learning purposes.
 
 ## Features
-- Can login/create account with email, twitter, github.
-- Can read, react and share the blog.
-- Can create your own blog.
-
+- Can login/create account with twitter, github.
+- Can read, react and share the article.
+- Can create your own article.
+- can schedule article post time.
 
 **Note: further enhancements will be added in future.
 
 ## Technology used
 - Nodejs
 - Typescript
-- React js
+- React js with typescript
 - Mongodb
 - Git/github
 - Oauth
+
+## Frontend
+The frontend part of this project is in app directory.
+
+
+##Backend
+the backend part of this project is in api directory.
