@@ -13,8 +13,12 @@ async function createArticleDraft(
      }>,
      res:Response
 ){
-
-     const userName = 'narenMagarZ'
+     let me : User = req.user as User
+     let userName = me['userName']
+     if(!userName)
+          return res.status(401).json({
+               error:'Authentication required'
+          })
      const {
           articleId
      } = req.query
@@ -23,8 +27,7 @@ async function createArticleDraft(
           return res.status(400).json({
                err:'missing articleId'
           })
-     }
-     
+     }         
      try{
           const prevArticle = await Article.findOne({
                owner:userName,
@@ -38,9 +41,7 @@ async function createArticleDraft(
                     url
                } = prevArticle
                const createURL = (title:string)=>{
-                    const slug = slugify(title.concat(
-                         ' ',
-                         articleId as string),{
+                    const slug = slugify(title,{
                          lower:true,
                          strict:true,
                          trim:true
@@ -48,7 +49,9 @@ async function createArticleDraft(
                     return '/'.concat(
                          userName,
                          '/',
-                         slug)
+                         slug,
+                         '-',
+                         articleId as string)
                }
                const newDraftedArticle = await Article.updateOne(
                     {
