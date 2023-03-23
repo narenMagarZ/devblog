@@ -5,6 +5,7 @@ import {
 import { Article } from '../../db/schemas'
 import slugify from 'slugify'
 import dayjs from 'dayjs'
+import markdownParser from '../../utils/markdown-parser/'
 
 
 
@@ -61,6 +62,7 @@ async function publishArticle(
                await Article.findByIdAndUpdate(myArticle.id,{
                     $set:{
                          status:'publish',
+                         content:markdownParser(myArticle.markdown),
                          url,
                          publishedAt:dayjs(Date.now())
                          .format('YYYY-MM-DD HH:mm:ss')
