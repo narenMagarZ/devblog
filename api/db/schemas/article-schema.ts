@@ -3,50 +3,6 @@ import mongoose from 'mongoose'
 import { db } from '..'
 
 const tagLimit = (tags:[string])=>tags.length <= 4
-const yourReactionSchema = new mongoose.Schema({
-     like:{
-          type:Boolean,
-          default:false
-     },
-     unicorn:{
-          type:Boolean,
-          default:false
-     },
-     explodingHead:{
-          type:Boolean,
-          default:false
-     },
-     raisdedHands:{
-          type:Boolean,
-          default:false
-     },
-     fire:{
-          type:Boolean,
-          default:false
-     }
-})
-const reactionsSchema = new mongoose.Schema({
-     like:{
-          type:Number,
-          default:0
-     },
-     unicorn:{
-          type:Number,
-          default:0
-     },
-     explodingHead:{
-          type:Number,
-          default:0
-     },
-     raisdeHands:{
-          type:Number,
-          default:0
-     },
-     fire:{
-          type:Number,
-          default:0
-     }
-})
 const articleSchema = new mongoose.Schema({
      title:{
           type:String,
@@ -79,7 +35,28 @@ const articleSchema = new mongoose.Schema({
           type:Number,
           default:0
      },
-     reactions:reactionsSchema,
+     reactions:{
+          like:{
+               type:Number,
+               default:0
+          },
+          unicorn:{
+               type:Number,
+               default:0
+          },
+          explodingHead:{
+               type:Number,
+               default:0
+          },
+          raisdeHands:{
+               type:Number,
+               default:0
+          },
+          fire:{
+               type:Number,
+               default:0
+          }
+     },
      comments:{
           type:Number,
           default:0
@@ -128,7 +105,28 @@ const articleSchema = new mongoose.Schema({
           type:Date,
           default:null
      },
-     yourReaction:yourReactionSchema
+     yourReaction:{
+          like:{
+               type:Boolean,
+               default:false
+          },
+          unicorn:{
+               type:Boolean,
+               default:false
+          },
+          explodingHead:{
+               type:Boolean,
+               default:false
+          },
+          raisdedHands:{
+               type:Boolean,
+               default:false
+          },
+          fire:{
+               type:Boolean,
+               default:false
+          }
+     }
 
 })
 
