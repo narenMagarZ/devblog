@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Comment, LoveFill, LovePlus, Save } from "../../custom icon"
 import baseApiUrl from "../../utils/base_api_url"
 
@@ -19,16 +19,36 @@ const ArticleActionBar : React.FC<articleactionbar> = ({
      saved,
      yourReaction
 })=>{
-     const [reaction,setReaction] = useState({
-          like:false,
-          unicorn:false,
-
-     })
-     async function handleReactionOnArticle(x:string){
-          console.log(x)
+     const [yrReaction,setYrReaction] = useState<IYourReaction>(yourReaction)
+     const [reactionNum,setReactionNum] = useState<IReactions>(reactions)
+     const [totalLikes,setTotalLikes] = useState(likes)
+     async function handleReactionOnArticle(x:'like'|'unicorn'|'explodingHead'|'raisedHands'|'fire'){
+          Object.keys(yrReaction).map((reaction)=>{
+               if(reaction === x){
+                    let y = reactionNum[x] + 1
+                    let z = 1
+                    let w = true
+                    if(yrReaction[x]){
+                         z = -1
+                         w = false
+                         y = y - 2
+                    }
+                    setYrReaction((state)=>({...state,[x]:w}))
+                    setTotalLikes((state)=>state + z)
+                    setReactionNum((state)=>({
+                         ...state,
+                         [x] : y
+                    }))
+                    return true
+               }
+               return false
+          })
           const response = await baseApiUrl.patch(`/reaction?type=${x}`)
           console.log(response)
      }
+     useEffect(()=>{
+          console.log(yrReaction,reactionNum)
+     },[yrReaction,reactionNum])
      return(
           <div 
           className="article-action-btn-bar-wrapper
@@ -41,21 +61,24 @@ const ArticleActionBar : React.FC<articleactionbar> = ({
                     action-bar-love-plus-btn
                     like-btn
                     align-items-center">
-                         {/* <LovePlus/> */}
-                         <LoveFill/>
+                         {
+                              Object.values(yrReaction)
+                              .some((reaction)=>reaction) ? 
+                              <LoveFill/> : <LovePlus/>
+                         }
                          <span>
-                              {likes}
+                              {totalLikes}
                          </span>
                     </button>
                     <ReactionDrawer 
-                    reactions={reactions}
-                    yourReaction={yourReaction}
+                    reactions={reactionNum}
+                    yourReaction={yrReaction}
                     handleReactionOnArticle={handleReactionOnArticle}
                     />
                </div>
                <div>
                     <button 
-                    onClick={()=>handleReactionOnArticle.bind(null,'love')}
+                    onClick={()=>handleReactionOnArticle.bind(null,'like')}
 
                     className="d-flex flex-column 
                     action-bar-comment-btn 
@@ -125,7 +148,7 @@ const ReactionDrawer = ({
                     </span>
                </button>
                <button 
-               onClick={()=>handleReactionOnArticle('exploding-head')}
+               onClick={()=>handleReactionOnArticle('explodingHead')}
                className={`reaction-btn rounded ${eh?'reacted':''}`}>
                     <img src="/icon/exploding-head.svg" alt="" />
                     <span className="fs-s color-base-60">
@@ -133,7 +156,7 @@ const ReactionDrawer = ({
                     </span>
                </button>
                <button 
-               onClick={()=>handleReactionOnArticle('raised-hands')}
+               onClick={()=>handleReactionOnArticle('raisedHands')}
                className={`reaction-btn rounded ${rh?'reacted':''}`}>
                     <img src="/icon/raised-hand.svg" alt="" />
                     <span className="fs-s color-base-60">
