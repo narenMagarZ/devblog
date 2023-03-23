@@ -46,6 +46,11 @@ const ArticleActionBar : React.FC<articleactionbar> = ({
           const response = await baseApiUrl.patch(`/reaction?type=${x}`)
           console.log(response)
      }
+     function scrollToCommentBox(){
+          const commentBox = document.getElementById('commentBox')
+          const scrollTop = commentBox?.getBoundingClientRect().top || 0
+          window.scrollBy(0,scrollTop)
+     }
      useEffect(()=>{
           console.log(yrReaction,reactionNum)
      },[yrReaction,reactionNum])
@@ -78,8 +83,7 @@ const ArticleActionBar : React.FC<articleactionbar> = ({
                </div>
                <div>
                     <button 
-                    onClick={()=>handleReactionOnArticle.bind(null,'like')}
-
+                    onClick={()=>scrollToCommentBox()}
                     className="d-flex flex-column 
                     action-bar-comment-btn 
                     align-items-center">
