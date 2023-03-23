@@ -16,6 +16,7 @@ import createArticleDraft from './handler/create-article-draft'
 import readArticle from './handler/read-article'
 import passport from 'passport'
 import publishArticle from './handler/publish-article'
+import reactionOnPost from './handler/reaction-on-post'
 
 
 const apiRouter = express.Router()
@@ -67,5 +68,9 @@ apiRouter.get('/:user/:articleslug',(req,res,next)=>{
 apiRouter.post('/article/publish',
 authMiddleware,
 publishArticle)
+
+apiRouter.patch('/reaction',reactionOnPost)
+
+
 
 export {apiRouter}
