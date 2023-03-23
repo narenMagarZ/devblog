@@ -1,0 +1,75 @@
+
+.article-action-btn-bar-wrapper{
+     position: sticky;
+     margin-top: 10rem;
+}
+.article-action-btn-bar-wrapper > div > button{
+     border: none;
+}
+
+.reaction-drawer-outer:hover > .reaction-drawer-wrapper{
+     display: flex;
+     gap:8px
+}    
+
+.action-bar-comment-btn{
+
+}
+.action-bar-love-plus-btn:hover > svg{
+     color: #ff0000;
+}
+.action-bar-love-plus-btn > span{
+     color:#575757 ;
+     font-size: 0.875rem;
+}
+.action-bar-comment-btn > span{
+     color:#575757 ;
+     font-size: 0.875rem;
+}
+.action-bar-comment-btn:hover > svg {
+     color: #f39c12;
+}
+
+.action-bar-save-btn:hover > svg{
+     color: var(--secondarybtncolorhover);
+}
+.action-bar-save-btn > span{
+     color: #575757;
+     font-size: 0.875rem;
+}
+.reaction-drawer-wrapper{
+     display: none;
+     position: absolute;
+     top: 0;
+     right:-14.2rem;
+}
+.reaction-drawer-wrapper > button{
+     /* background-color: transparent; */
+     /* border: none; */
+
+}
+
+.user-metadata-details{
+     padding: 0;
+     margin: 0;
+}
+.user-metadata-details > li{
+     margin: 10px 0;
+}
+
+.reaction-btn{
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     border: none;
+     background-color: transparent;
+}    
+
+.reaction-btn:hover{
+     background-color: #ececec;
+}
+
+.reacted{
+     background-color: #ececec;
+     border: 1px solid #cccccc;
+}
