@@ -43,7 +43,7 @@ const ArticleActionBar : React.FC<articleactionbar> = ({
                }
                return false
           })
-          const response = await baseApiUrl.patch(`/reaction?type=${x}`)
+          const response = await baseApiUrl.patch(`/reaction?type=${x}&articleId=${'fd'}`)
           console.log(response)
      }
      function scrollToCommentBox(){
