@@ -21,7 +21,7 @@ async function readArticle(
      res:Response
 ){
 
-     let me : User = req.user as User
+     let me = req.user as User
      let userName = me['userName']
      if(!userName){
           return res.status(401).json({

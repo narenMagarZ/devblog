@@ -6,6 +6,7 @@ import {
 } from 'express'
 import short from 'short-uuid'
 
+
 interface article {
      articleId:string
      title:string
@@ -17,11 +18,13 @@ async function getOrCreateUnpublishedArticle(
      req:Request,
      res:Response
 ){
-     // hard-coded for now, but should be obtained from session data 
-     const userName = 'narenMagarZ' 
-     if(!userName) return res.status(400).json({
-          msg:'missing user'
-     })
+     let me : User = req.user as User
+     let userName = me['userName']
+     if(!userName){
+          return res.status(401).json({
+               error:'Authentication required'
+          })
+     }
      let articleDetail : article  = {
           articleId:'',
           title:'',
@@ -32,7 +35,7 @@ async function getOrCreateUnpublishedArticle(
      try{
           
           const result = await Article.findOne({
-               userName,
+               owner:userName,
                status:'edit'
           })
           if(result){
