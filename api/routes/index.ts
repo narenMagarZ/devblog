@@ -17,6 +17,8 @@ import readArticle from './handler/read-article'
 import passport from 'passport'
 import publishArticle from './handler/publish-article'
 import reactionOnPost from './handler/reaction-on-post'
+import commentOnPost from './handler/comment-on-post'
+import likeOnComment from './handler/like-on-comment'
 
 
 const apiRouter = express.Router()
@@ -69,8 +71,8 @@ apiRouter.post('/article/publish',
 authMiddleware,
 publishArticle)
 
-apiRouter.patch('/reaction',reactionOnPost)
-
-
+apiRouter.patch('/reaction',authMiddleware,reactionOnPost)
+apiRouter.patch('/comment',authMiddleware,commentOnPost)
+apiRouter.patch('/like/comment',authMiddleware,likeOnComment)
 
 export {apiRouter}
