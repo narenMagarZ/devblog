@@ -19,6 +19,11 @@ import publishArticle from './handler/publish-article'
 import reactionOnPost from './handler/reaction-on-post'
 import commentOnPost from './handler/comment-on-post'
 import likeOnComment from './handler/like-on-comment'
+import readProfile from './handler/read-profile'
+import dashboard from './handler/dashboard'
+import deleteArticle from './handler/delete-article'
+import confirmDelete from './handler/confirm-delete'
+import editArticle from './handler/edit-article'
 
 
 const apiRouter = express.Router()
@@ -41,7 +46,10 @@ apiRouter.get('/blogposts',(req,res)=>{
 const authMiddleware = passport.authenticate('jwt',{
      session:false
 })
-// apiRouter.use(authMiddleware)
+
+apiRouter.get('/article/edit',authMiddleware,editArticle)
+apiRouter.get('/delete_confirm',authMiddleware,confirmDelete)
+apiRouter.delete('/article',authMiddleware,deleteArticle)
 apiRouter.put('/article/draft',authMiddleware,createArticleDraft)
 apiRouter.post('/article/preview',authMiddleware,createArticlePreview)
 apiRouter.post('/image_upload',upload.single('image'),generateImageUrl)
@@ -59,6 +67,8 @@ upload.fields([
      }
 ]),
 uploadImage)
+apiRouter.get('/profile/:user',authMiddleware,readProfile)
+
 apiRouter.get('/article/draft',authMiddleware,readLatestArticleDraft)
 apiRouter.route('/article/new')
 .get(authMiddleware,getOrCreateUnpublishedArticle)
@@ -71,8 +81,8 @@ apiRouter.post('/article/publish',
 authMiddleware,
 publishArticle)
 
+apiRouter.get('/dashboard',authMiddleware,dashboard)
 apiRouter.patch('/reaction',authMiddleware,reactionOnPost)
 apiRouter.patch('/comment',authMiddleware,commentOnPost)
 apiRouter.patch('/like/comment',authMiddleware,likeOnComment)
-
 export {apiRouter}
