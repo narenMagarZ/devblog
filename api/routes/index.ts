@@ -24,6 +24,9 @@ import dashboard from './handler/dashboard'
 import deleteArticle from './handler/delete-article'
 import confirmDelete from './handler/confirm-delete'
 import editArticle from './handler/edit-article'
+import manageArticle from './handler/manage-article'
+import fetchProfileInfo from './handler/fetch-profile-info'
+import readCustomizedProfileInfo from './handler/read-customized-profile-info'
 
 
 const apiRouter = express.Router()
@@ -47,14 +50,20 @@ const authMiddleware = passport.authenticate('jwt',{
      session:false
 })
 
+apiRouter.get('/manage/article',authMiddleware,manageArticle)
 apiRouter.get('/article/edit',authMiddleware,editArticle)
 apiRouter.get('/delete_confirm',authMiddleware,confirmDelete)
 apiRouter.delete('/article',authMiddleware,deleteArticle)
 apiRouter.put('/article/draft',authMiddleware,createArticleDraft)
 apiRouter.post('/article/preview',authMiddleware,createArticlePreview)
 apiRouter.post('/image_upload',upload.single('image'),generateImageUrl)
-apiRouter.put('/profile',updateProfile)
-apiRouter.put('/customize',customizeAccount)
+apiRouter.put('/profileinfo',authMiddleware,updateProfile)
+
+apiRouter.route('/profile/customize')
+.get(authMiddleware,readCustomizedProfileInfo)
+.put(authMiddleware,customizeAccount)
+
+
 apiRouter.post('/image_uploads',
 upload.fields([
      {
@@ -68,7 +77,6 @@ upload.fields([
 ]),
 uploadImage)
 apiRouter.get('/profile/:user',authMiddleware,readProfile)
-
 apiRouter.get('/article/draft',authMiddleware,readLatestArticleDraft)
 apiRouter.route('/article/new')
 .get(authMiddleware,getOrCreateUnpublishedArticle)
@@ -85,4 +93,9 @@ apiRouter.get('/dashboard',authMiddleware,dashboard)
 apiRouter.patch('/reaction',authMiddleware,reactionOnPost)
 apiRouter.patch('/comment',authMiddleware,commentOnPost)
 apiRouter.patch('/like/comment',authMiddleware,likeOnComment)
+apiRouter.get('/profileinfo',authMiddleware,fetchProfileInfo)
+
+
+
+
 export {apiRouter}
