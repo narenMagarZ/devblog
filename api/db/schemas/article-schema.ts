@@ -19,12 +19,10 @@ const articleSchema = new mongoose.Schema({
           default:'edit',
           required:true
      },
-     owner:{
-          type:String,
-          required:true,
-          set:(owner:string)=>{
-               return owner.toLowerCase()
-          }
+     userId:{
+          type:mongoose.Schema.Types.ObjectId,
+          ref:'user',
+          required:true
      },
      tags:{
           type:Array<String>,
@@ -48,7 +46,7 @@ const articleSchema = new mongoose.Schema({
                type:Number,
                default:0
           },
-          raisdeHands:{
+          raisedHands:{
                type:Number,
                default:0
           },
@@ -61,9 +59,18 @@ const articleSchema = new mongoose.Schema({
           type:Number,
           default:0
      },
-     isBookmarked:{
-          type:Boolean,
-          default:false
+     numUsersAddedToReadingList:{
+          type:Number,
+          default:0
+     },
+     readingListUserIds:{
+          type:[
+               {
+                    type:mongoose.Types.ObjectId,
+                    ref:'users'
+               }
+          ],
+          default:[]
      },
      readTime:{
           type:Number,
@@ -105,6 +112,10 @@ const articleSchema = new mongoose.Schema({
           type:Date,
           default:null
      },
+     views:{
+          type:Number,
+          default:0
+     },
      yourReaction:{
           like:{
                type:Boolean,
@@ -118,7 +129,7 @@ const articleSchema = new mongoose.Schema({
                type:Boolean,
                default:false
           },
-          raisdedHands:{
+          raisedHands:{
                type:Boolean,
                default:false
           },
