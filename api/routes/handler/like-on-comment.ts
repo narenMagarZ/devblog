@@ -1,65 +1,68 @@
+import { ObjectId } from 'mongoose';
 import {
      Request,
      Response
 } from 'express'
 import { Article, Comment } from '../../db/schemas'
-import convertStrIdToObjectId from '../../utils/convert-strid-objectid'
-import extractArticleIdFromArticleSlug from '../../utils/extract-article-id-from-slug'
+import _ from 'lodash'
+import objectId from '../../utils/str-to-objectid';
 
 async function likeOnComment(
      req:Request<{},{},{},{
-          user:string,
-          articleSlug:string,
-          id:string,
-          state:string
+          commentId:string
+          articleId:string
      }>,
      res:Response
 ){
-     const me = req.user as User
-     const userName = me['userName']
-     console.log(req.query,'req.query')
-     if(!userName)
+     const user = req.user as User
+     if(!user)
           return res.status(401).json({
-               error:'unauthorized request'
+               error:'Authentication required'
           })
      let {
-          user,
-          articleSlug,
-          id,
-          state
+          commentId,
+          articleId
      } = req.query
-     if(!user || !articleSlug || !id || !state){
+     if(!commentId || !articleId){
           return res.status(400).json({
-               error:'missing fields'
+               error:'missing commentId or articleId'
           })
      }
-     const articleId = extractArticleIdFromArticleSlug(articleSlug)
      try{
-          const article = await Article.findOne({
-               owner:user,
-               articleId
-          })
-          console.log(article)
-          if(article){
-               const x = state === 'true' ? -1 : 1
-               const y = state === 'true' ? true : false
-               await Comment.findOneAndUpdate({
-                    _id:convertStrIdToObjectId(id),
-                    postId:convertStrIdToObjectId(article.id)
-               },{
-                         $inc:{
-                              likes:x
-                         },
-                         $set:{
-                              isLikedByYou:!y,
-                         }
+          const [article,comment] = await Promise.all([
+               Article.findOne({articleId}),
+               Comment.findById(commentId)
+          ])
+          if(article && comment){
+               const index = comment.reactors.findIndex(reactor=>{
+                    const reactorId = (reactor as ObjectId).toString()
+                    if(reactorId === user.id) return reactorId
                })
+               console.log(index)
+               const operation = _.gte(index,0) ? {
+                    $inc:{
+                         likes:-1
+                    },
+                    $pull:{
+                         reactors:{$eq:objectId(user.id)}
+                    }
+                    
+               } : {
+                    $inc:{
+                         likes:1
+                    },
+                    $push:{
+                         reactors:objectId(user.id)
+                    }
+                    
+               }
+               await comment.updateOne(operation)
                return res.status(200).json({
-                    message:'ok'
+                    message:'done'
                })
-          }else{
-               return res.status(400).json({
-                    error:'article not found'
+          }else {
+               return res.status(404).json({
+                    message:'article or comment not found'
                })
           }
 
