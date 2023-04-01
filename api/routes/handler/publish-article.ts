@@ -3,73 +3,57 @@ import {
      Response
 } from 'express'
 import { Article } from '../../db/schemas'
-import slugify from 'slugify'
 import dayjs from 'dayjs'
 import markdownParser from '../../utils/markdown-parser/'
+import createURL from '../../utils/create-url'
+import join from '../../utils/join'
 
 
 
 async function publishArticle(
-     req:Request<{},{
+     req:Request<{},{},{
           articleId:string
      }>,
      res:Response
 ){
-     const me : User = req.user as User
-     const userName = me.userName
-     if(!userName)
+     const user = req.user as User
+     if(!user)
           return res.status(401).json({
                error:'Authenticated required'
           })
-     const {
-          articleId
-     } = req.query
+     const {articleId} = req.body
      if(!articleId)
           return res.status(400).json({
-               error:'missing article id'
+               error:'missing articleId'
           })
+
      try{
-          const myArticle = await Article.findOne({
-               articleId,
-               owner:userName
-          })
-          if(myArticle){
+          const article = await Article.findOne({articleId})
+          if(article){
                let {
                     title,
-                    url
-               } = myArticle
-               if(title.length < 1)
-                    return res.status(400).json({
-                         error:'Article cannot be published',
-                         message:'The title field is required to publish an article'
-                    })
-               if(!url){
-                    const createURL = (title:string)=>{
-                         const slug = slugify(title,{
-                              lower:true,
-                              strict:true,
-                              trim:true
-                         })
-                         return '/'.concat(
-                              userName,
-                              '/',
-                              slug,
-                              '-',
-                              articleId as string)
-                    }
-                    url = createURL(title)
+                    url,
+                    markdown
+               } = article
+               const len = (str:string)=>str.length===0
+               if(len(title)){
+                  return res.status(400).json({
+                    message:'title should be provided'
+                  })  
                }
-               await Article.findByIdAndUpdate(myArticle.id,{
+               if(!url)
+               url = createURL(title,articleId)
+               await article.updateOne({
                     $set:{
-                         status:'publish',
-                         content:markdownParser(myArticle.markdown),
                          url,
+                         status:'publish',
+                         content:markdownParser(markdown),
                          publishedAt:dayjs(Date.now())
-                         .format('YYYY-MM-DD HH:mm:ss')
                     }
                })
                return res.status(200).json({
-                    url
+                    message:'ok',
+                    url:join('/',user.userName,url)
                })
           }else{
                return res.status(404).json({
