@@ -4,34 +4,33 @@ import {
       Response
 } from 'express'
 import { User } from '../../db/schemas'
-import convertStrIdToObjectId from '../../utils/convert-strid-objectid'
 import createRelativeDateTime from '../../utils/create-relative-datetime'
-
+import objectId from '../../utils/str-to-objectid'
+import _ from 'lodash'
+import join from '../../utils/join'
 
 async function dashboard(
      req:Request,
      res:Response
 ){
-     const me = req.user as User
-     const userName = me['userName']
-     if(!userName)
+     const user = req.user as User
+     if(!user)
           return res.status(401).json({
-               error:'unauthorized request'
+               error:'Authentication required'
           })
      try{
-          const user = await User.aggregate([
+          const userResult = await User.aggregate([
                {
                     $match:{
-                         userName,
-                         _id:convertStrIdToObjectId(me.id)
+                         _id:objectId(user.id)
                     }
                },
                {
                     $lookup:{
                          from:'articles',
                          as:'article',
-                         localField:'userName',
-                         foreignField:'owner',
+                         localField:'_id',
+                         foreignField:'userId',
                          pipeline:[
                               {
                                    $match:{
@@ -62,21 +61,21 @@ async function dashboard(
                {
                     $project:{
                          _id:0,
-                         // tags:{
-                         //      $size:'$tags'
-                         // },
+                         tagCount:{
+                              $size:'$tags'
+                         },
                          following:1,
                          followers:1,
                          article:1
                     }
                }
           ])
-          if(user.length === 1){
-               let totalPosts = 0
-               for(let i of user[0].article ){
-                    console.log(i)
+          if(!_.isEmpty(userResult)){
+               const result = userResult[0]
+               const articles = result.article
+               for(let i of articles){
                     const articleStatus = i.status
-                    totalPosts++
+                    i.url = join('/',user.userName,i.url)
                     if(articleStatus === 'publish'){
                          const articlePublishedDate = i.publishedAt
                          i.views = i.views ? i.views : 0
@@ -84,11 +83,8 @@ async function dashboard(
                          i.updatedAt = createRelativeDateTime(i.updatedAt||articlePublishedDate)
                     }
                }
-               user[0].totalPosts = totalPosts
-               if(!user[0].tags) user[0].tags = 0
-               return res.status(200).json({
-                    ...user[0],
-               })
+               result.totalPosts = articles.length
+               return res.status(200).json(result)
 
           }else {
                return res.status(404).json({
