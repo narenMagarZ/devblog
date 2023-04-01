@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { NextFunction,Request, Response } from 'express'
 import fetchArticlesPreview from './handler/fetch-articles-preview'
 import uploadImage from './handler/upload-image'
 import upload from '../utils/file_handler'
@@ -27,6 +27,16 @@ import editArticle from './handler/edit-article'
 import manageArticle from './handler/manage-article'
 import fetchProfileInfo from './handler/fetch-profile-info'
 import readCustomizedProfileInfo from './handler/read-customized-profile-info'
+import fetchTags from './handler/fetch-tags'
+import viewTagInfo from './handler/view-tag-info'
+import followTag from './handler/follow-tag'
+import readArticlesAndTags from './handler/read-articles-and-tags'
+import authenticate from '../utils/authenticate'
+import authCheck from './handler/auth-check'
+import followUser from './handler/follow-user'
+import addArticleToReadList from './handler/add-article-to-list'
+import fetchReadingList from './handler/fetch-reading-list'
+import saveChanges from './handler/save-changes'
 
 
 const apiRouter = express.Router()
@@ -36,8 +46,7 @@ const apiRouter = express.Router()
 // unprotected routes
 apiRouter.post('/auth/github',githubEnter)
 apiRouter.post('/auth/twitter',twitterEnter)
-
-
+apiRouter.get('/tags',fetchTags)
 apiRouter.get('/search',searchBlogPost)
 apiRouter.get('/articles',fetchArticlesPreview)
 apiRouter.get('/blogposts',(req,res)=>{
@@ -49,12 +58,16 @@ apiRouter.get('/blogposts',(req,res)=>{
 const authMiddleware = passport.authenticate('jwt',{
      session:false
 })
+     
+
+apiRouter.get('/auth-check',authenticate,authCheck)
+apiRouter.get('/tag/:tag',authenticate,viewTagInfo)
 
 apiRouter.get('/manage/article',authMiddleware,manageArticle)
-apiRouter.get('/article/edit',authMiddleware,editArticle)
-apiRouter.get('/delete_confirm',authMiddleware,confirmDelete)
-apiRouter.delete('/article',authMiddleware,deleteArticle)
-apiRouter.put('/article/draft',authMiddleware,createArticleDraft)
+apiRouter.get('/article/edit',authenticate,editArticle)
+apiRouter.get('/delete_confirm',authenticate,confirmDelete)
+apiRouter.delete('/article/:articleId',authenticate,deleteArticle)
+apiRouter.put('/article/draft',authenticate,createArticleDraft)
 apiRouter.post('/article/preview',authMiddleware,createArticlePreview)
 apiRouter.post('/image_upload',upload.single('image'),generateImageUrl)
 apiRouter.put('/profileinfo',authMiddleware,updateProfile)
@@ -76,26 +89,35 @@ upload.fields([
      }
 ]),
 uploadImage)
-apiRouter.get('/profile/:user',authMiddleware,readProfile)
+
+
+apiRouter.get('/user-feed',authenticate,readArticlesAndTags)
+apiRouter.get('/profile/:username',authenticate,readProfile)
 apiRouter.get('/article/draft',authMiddleware,readLatestArticleDraft)
 apiRouter.route('/article/new')
-.get(authMiddleware,getOrCreateUnpublishedArticle)
-.put(authMiddleware,updateUnpublishedArticle)
-apiRouter.get('/:user/:articleslug',(req,res,next)=>{
-     authMiddleware.bind(null,req,res,next)('string')
-},readArticle)
+.get(authenticate,getOrCreateUnpublishedArticle)
+.put(authenticate,updateUnpublishedArticle)
 
-apiRouter.post('/article/publish',
-authMiddleware,
-publishArticle)
+apiRouter.get('/:user/:articleslug',authenticate,readArticle)
 
-apiRouter.get('/dashboard',authMiddleware,dashboard)
-apiRouter.patch('/reaction',authMiddleware,reactionOnPost)
-apiRouter.patch('/comment',authMiddleware,commentOnPost)
-apiRouter.patch('/like/comment',authMiddleware,likeOnComment)
+apiRouter.route('/article/publish')
+.post(authenticate,publishArticle)
+.put(authenticate,saveChanges)
+
+
+apiRouter.get('/dashboard',authenticate,dashboard)
+apiRouter.patch('/reaction',authenticate,reactionOnPost)
+apiRouter.post('/comment',authenticate,commentOnPost)
+apiRouter.patch('/like/comment',authenticate,likeOnComment)
 apiRouter.get('/profileinfo',authMiddleware,fetchProfileInfo)
 
+apiRouter.patch('/follows',authMiddleware,followTag)
 
+apiRouter.patch('/follower',authenticate,followUser)
+
+apiRouter.patch('/article/add-to-readlist',authenticate,addArticleToReadList)
+
+apiRouter.get('/readinglist',authenticate,fetchReadingList)
 
 
 export {apiRouter}
