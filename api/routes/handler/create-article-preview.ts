@@ -2,35 +2,59 @@ import {
      Request,
      Response
 } from 'express'
+import { Article } from '../../db/schemas'
 import markdownParser from '../../utils/markdown-parser/'
-import path from 'path'
-import fs from 'fs/promises'
+import objectId from '../../utils/str-to-objectid'
 async function createArticlePreview(
-     _req:Request,
+     req:Request<{},{},{
+          articleStatus:string
+          title:string
+          coverImageUrl:string
+          tags:string[]
+          markdown:string,
+          articleId:string
+     }>,
      res:Response
-){
-     const userName = 'narenmagarz'
-     const pathToUnpublishedArticle = path.join(
-          __dirname,
-          process.env.PATH_TO_ARTICLE_COLLECTION||'')
+){  
+     console.log(req.body)
+     const user = req.user as User 
+     if(!user){
+          return res.status(401).json({
+               message:'Authentication required'
+          })
+     }
+
+     const {
+          articleStatus,
+          title,
+          coverImageUrl,
+          tags,
+          markdown,
+          articleId
+     } = req.body
           try{
-               const data = await fs.readFile(pathToUnpublishedArticle,'utf8')
-               const articles = JSON.parse(data)
-               const myArticleData = articles[userName]
-               if(myArticleData){
-                    const htmlContent = markdownParser(myArticleData.markdownContent)
-                    return res.status(200).json({
-                         htmlContent,
-                         title:myArticleData.title,
-                         tags:myArticleData.tags,
-                         coverImageUrl:myArticleData.coverImageUrl
+               if(articleStatus === 'edit'){
+                    const article = await Article.findOne({
+                         userId:objectId(user.id),
+                         status:'edit'
                     })
-               }else{
+                    if(article){
+                         return res.status(200).json({
+                              title:article.title,
+                              tags:article.tags,
+                              coverImageUrl:article.coverImageUrl,
+                              content:markdownParser(article.markdown)
+                         })
+                    }
+               }
+               else {
+                    const article = await Article.findOne({articleId})
                     return res.status(200).json({
-                         htmlContent:'',
-                         title:'',
-                         tags:[],
-                         coverImageUrl:''
+                         articleId,
+                         title,
+                         coverImageUrl,
+                         tags,
+                         content:markdownParser(markdown)
                     })
                }
 
