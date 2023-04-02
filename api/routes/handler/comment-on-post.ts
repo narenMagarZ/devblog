@@ -1,59 +1,49 @@
 import {Request, Response} from 'express'
 import { Article, Comment } from '../../db/schemas'
-import extractArticleIdFromArticleSlug from '../../utils/extract-article-id-from-slug'
-import convertStrIdToObjectId from '../../utils/convert-strid-objectid'
 import extractComment from '../../utils/extract-comment'
 
 async function commentOnPost(
      req:Request<{},{},{
-          comment:string,
-          parentCommentId:string|null|undefined
-     },{
-          user:string,
-          articleSlug:string
+          comment:string
+          parentCommentId?:string
+          articleId:string
      }>,
      res:Response){
-          const me = req.user as User
-          const userName = me['userName']
-          if(!userName)
+          const user = req.user as User
+          if(!user)
                return res.status(401).json({
                     error:'unauthorized request'
                })
           const {
-               user,
-               articleSlug
-          } = req.query
-          if(!user || !articleSlug){
-               return res.status(400).json({
-                    error:'missing fields'
-               })
-          }
-          const {
                comment,
-               parentCommentId
+               parentCommentId,
+               articleId
           } = req.body
-          if(!comment){
+          if(!comment || !articleId){
                return res.status(400).json({
-                    error:'comment must be provided'
+                    error:'missing comment or articleId'
                })
           }
      try{
-          const articleId = extractArticleIdFromArticleSlug(articleSlug)
           const article = await Article.findOne({
-               owner:user,
                articleId
           })
           if(article){
+               await article.updateOne({
+                    $inc:{
+                         comments:1
+                    }
+               })
                await new Comment({
-                    commentBy:userName,
-                    postId:article.id,
+                    commentBy:user.userName,
+                    postId:article._id,
                     text:comment,
                     parentCommentId
                }).save()
           const comments = await Comment.aggregate([
                {
                     $match:{
-                         postId:convertStrIdToObjectId(article.id),
+                         postId:article._id,
                     }
                },
                {

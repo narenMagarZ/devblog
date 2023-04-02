@@ -91,7 +91,8 @@ async function githubEnter(req:Request<{},{},GithubEnterReqBody>,res:Response){
                               repoUrl,
                               email,
                               picture,
-                              accountType:'github'
+                              accountType:'github',
+                              url:'/'.concat(userName)
                          })
                          await user.save()
                          createCookie(res,user.id)

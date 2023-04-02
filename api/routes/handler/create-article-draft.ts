@@ -5,83 +5,96 @@ import {
 } from 'express'
 import { Article } from '../../db/schemas'
 import markdownParser from '../../utils/markdown-parser/'
-import slugify from 'slugify'
+import objectId from '../../utils/str-to-objectid'
+import _ from 'lodash'
+import createURL from '../../utils/create-url'
+import join from '../../utils/join'
 
+interface IArticleDraft {
+     title:string
+     coverImageUrl:string|null
+     markdown:string
+     tags:string[]
+     status:string
+     articleId:string
+}
 async function createArticleDraft(
-     req:Request<{},{
+     req:Request<{},{},IArticleDraft,{
           articleId:string
+          status:'edit'|'draft'|'publish'
      }>,
      res:Response
 ){
-     let me : User = req.user as User
-     let userName = me['userName']
-     if(!userName)
+     let user = req.user as User
+     if(!user)
           return res.status(401).json({
                error:'Authentication required'
           })
      const {
-          articleId
+          articleId,
+          status
      } = req.query
-
-     if(!articleId){
+     if(!articleId || !status){
           return res.status(400).json({
-               err:'missing articleId'
+               err:'missing articleId or status'
           })
      }         
      try{
-          const prevArticle = await Article.findOne({
-               owner:userName,
+          const article = await Article.findOne({
+               userId:objectId(user.id),
                articleId
           })
-          if(prevArticle){
-               const {
-                    status,
-                    markdown,
-                    title,
-                    url
-               } = prevArticle
-               const createURL = (title:string)=>{
-                    const slug = slugify(title,{
-                         lower:true,
-                         strict:true,
-                         trim:true
-                    })
-                    return '/'.concat(
-                         userName,
-                         '/',
-                         slug,
-                         '-',
-                         articleId as string)
-               }
-               const newDraftedArticle = await Article.updateOne(
-                    {
-                    owner:userName,
-                    articleId
-                    },
-               {
-                    $set:{
-                         status:'draft',
-                         content:markdownParser(markdown),
-                         url:status === 'edit' ? createURL(title) : url
-                    }
-               },{
-                    new:true
-               })
-               console.log(newDraftedArticle,'new article')
-               return res.status(200).json({
-                    msg:'draft updated',
-                    url:newDraftedArticle['url']
-               })
-          }else {
+          if(!article){
                return res.status(404).json({
-                    err:'article not found'
+                    message:'article not found'
                })
           }
+          let url = article.url
+               if(status === 'draft' || status === 'publish'){
+                    const {
+                         title,
+                         coverImageUrl,
+                         markdown,
+                         tags
+                    } = req.body
+                    await article.updateOne({
+                         $set:{
+                              title,
+                              coverImageUrl,
+                              markdown,
+                              tags,
+                              content:markdownParser(markdown)
+                         }
+                    })
+               } else{
+                    let {
+                         markdown,
+                         title,
+                         coverImageUrl,
+                         tags
+                    } = article
+                    url = createURL(title,articleId)
+                    await article.updateOne({
+                         $set:{
+                              status:'draft',
+                              content:markdownParser(markdown),
+                              markdown:markdown,
+                              tags,
+                              coverImageUrl,
+                              url
+                         }
+                    })
+               }
+               return res.status(200).json({
+                    message:'ok',
+                    url:join('/',user.userName,url)
+               })
+
 }
      catch(err){
           console.error(err)
           return res.status(500).json({
-               err:err.message
+               error:err.message
           })
      }
 }
