@@ -10,34 +10,31 @@ async function confirmDelete(
      }>,
      res:Response
 ){
-     const me = req.user as User
-     const userName = me['userName']
-     if(!userName)
+     const user = req.user as User
+     if(!user)
           return res.status(401).json({
-               error:'unauthorized request'
+               error:'authentication required'
           })
      const {
-          user,
-          articleSlug
+          user:username,
+          articleSlug:slug
      } = req.query 
-     if(!user || !articleSlug)
+     if(!username || !slug)
           return res.status(400).json({
-               error:'missing user or articleslug'
+               error:'missing username or slug'
           })
-     if(user !== userName){
+     if(user.userName !== username){
           return res.status(401).json({
-               error:'not authorized'
+               error:'authentication required'
           })
      }
      try{
-          const articleId = extractArticleIdFromArticleSlug(articleSlug)
-          const response = await Article.findOne({
-               owner:user,
-               articleId
-          })
-          if(response){
+          const articleId = extractArticleIdFromArticleSlug(slug)
+          const article = await Article.findOne({articleId})
+          if(article){
                return res.status(200).json({
-                    title:response.title
+                    title:article.title,
+                    articleId
                })
           }
           else return res.status(404).json({
@@ -47,7 +44,9 @@ async function confirmDelete(
      }    
      catch(err){
           console.error(err)
-
+          return res.status(500).json({
+               error:err.message
+          })
      }
 }
 
