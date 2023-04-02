@@ -1,41 +1,28 @@
 import {Request, Response} from 'express'
 import { Article } from '../../db/schemas'
-import extractArticleIdFromArticleSlug from '../../utils/extract-article-id-from-slug'
-
 
 async function deleteArticle(
-     req:Request<{},{},{},{
-          user:string,
-          articleSlug:string
+     req:Request<{
+          articleId:string
      }>,
      res:Response
 ){
-     const me = req.user as User
-     const userName = me['userName']
-     if(!userName)
+     const user = req.user as User
+     if(!user)
           return res.status(401).json({
-               error:'unauthorized request'
+               error:'Authentication required'
           })
      const {
-          user,
-          articleSlug
-     } = req.query 
-     if(!user || !articleSlug)
+          articleId
+     } = req.params
+     if(!articleId)
           return res.status(400).json({
-               error:'missing user or articleslug'
+               error:'missing articleId'
           })
-     if(user !== userName){
-          return res.status(401).json({
-               error:'not authorized'
-          })
-     }
      try{
-          const articleId = extractArticleIdFromArticleSlug(articleSlug)
-          const response = await Article.findOneAndDelete({
-               owner:user,
-               articleId
-          })
-          if(response){
+          const article = await Article.findOne({articleId})
+          if(article?.userId.toString() === user.id){
+               await article.deleteOne()
                return res.status(200).json({
                     message:'deleted'
                })
@@ -47,7 +34,9 @@ async function deleteArticle(
      }    
      catch(err){
           console.error(err)
-
+          return res.status(500).json({
+               error:err.message
+          })
      }
 }
 
