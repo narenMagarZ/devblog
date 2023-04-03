@@ -34,19 +34,9 @@ async function manageArticle(
           try{
                const articleId = extractArticleIdFromArticleSlug(articleSlug)
                const article = await Article.findOne({
-                    owner:user,
                     articleId
                })
                if(article){
-                    const {
-                         title,
-                         likes,
-                         comments,
-                         views,
-                         publishedAt,
-                         updatedAt,
-                         url
-                    } = article
                     const articleInfo = _.pick(article,['title','likes','comments',
                     'views','publishedAt','updatedAt','url'])
                     res.status(200).json(articleInfo)

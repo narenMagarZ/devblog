@@ -4,7 +4,7 @@ import {
      Response
 } from 'express'
 import joi,{ValidationError} from 'joi'
-import {Article} from '../../db/schemas'
+import { User } from '../../db/schemas'
 
 interface profile {
      name:string
@@ -26,12 +26,21 @@ export default async function updateProfile(
      req:Request<{},{},profile>,
      res:Response
 ){
-     // const {
-     //      id
-     // } = req.user as {id:string}
+     let me : User = req.user as User
+     let userName = me['userName']
+     if(!userName){
+          return res.status(401).json({
+               error:'Authentication required'
+          })
+     }
+     console.log(req.body,'req.body')
      try{
-          
-          const bodySchema = joi.object<profile>({
+          const bodySchema = joi.object<{
+               name:string
+               userName:string
+               email:string
+               brandColor:string
+          }>({
                name:joi.string()
                .min(3)
                .required(),
@@ -49,24 +58,24 @@ export default async function updateProfile(
                .string()
                .regex(/(?=.*#)^[#A-z\d]{7}$/)
                .message('invalid {#label}')
-               .required(),
-               websiteUrl:joi.string().default('').required(),
-               location:joi.string().default('').required(),
-               bio:joi.string().default('').required(),
-               currentlyHackingOn:joi.string().default('').required(),
-               skills:joi.string().default('').required(),
-               work:joi.string().default('').required(),
-               picture:joi.string().default('').required(),
-               availableFor:joi.string().default('').required(),
-               education:joi.string().default('').required(),
-               currentlyLearning:joi.string().default('').required()
+               .required()
           })
-               const value = await bodySchema.validateAsync(req.body)
+               const value = await bodySchema.validateAsync({
+                    name:req.body.name,
+                    userName:req.body.userName,
+                    email:req.body.email,
+                    brandColor:req.body.brandColor
+               })
                console.log(value)
-               const id  = '34'
-               // await BlogPost.findByIdAndUpdate(id,req.body)
-               return res.status(200).json({
-                    msg:'profile updated'
+               const user = await User.findByIdAndUpdate(me.id,{
+                    ...req.body
+               })
+               if(user){
+                    return res.status(200).json({
+                         msg:'profile updated'
+                    })
+               }else return res.status(404).json({
+                    error:'user not found'
                })
      }
      catch(err){

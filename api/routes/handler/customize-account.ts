@@ -4,14 +4,15 @@ import{
      Response
 } from 'express'
 import joi,{ValidationError} from 'joi'
+import { User } from '../../db/schemas'
 
 
 interface CustomizeAccount {
      theme:'dark'|'light'
-     font:Font
-     navBarPos:'top'|'fixed'
-     editorVersion:'advance'|'basic'
-     yourExperience:1|2|3|4|5
+     baseReadingFont:Font
+     siteNavbar:'Fixed to window'|'Static top of page'
+     editorVersion:'Rich + markdown'|'Basic markdown'
+     experienceLevel:'Novice'|'Beginner'|'Mid-level'|'Advanced'|'Expert'
 }
 type Font = 'Helvetica'|'monospace'|'comic sans'|'open dyslexic'|'sans serif'|'serif'
 
@@ -20,34 +21,47 @@ async function customizeAccount(
      req:Request<{},{},CustomizeAccount>,
      res:Response
 ){
-
+     let me : User = req.user as User
+     let userName = me['userName']
+     if(!userName){
+          return res.status(401).json({
+               error:'Authentication required'
+          })
+     }
      const schema = joi.object<CustomizeAccount>({
           theme:joi.string()
           .valid('light','dark')
           .default('light')
           .required(),
-          font:joi.string()
-          .valid('Helvetica','monospace','comic sans','open dyslexic','sans serif','serif')
-          .default('helvetica')
+          baseReadingFont:joi.string()
+          .valid('monospace','comic sans','open dyslexic','sans serif','serif','default')
+          .default('default')
           .required(),
-          navBarPos:joi.string()
-          .valid('top','fixed')
-          .default('fixed')
+          siteNavbar:joi.string()
+          .valid('Static top of page','Fixed to window')
+          .default('Fixed to window')
           .required(),
           editorVersion:joi.string()
-          .valid('basic','advanced')
-          .default('advance')
+          .valid('Rich + markdown','Basic markdown')
+          .default('Rich + markdown')
           .required(),
-          yourExperience:joi.number()
-          .valid(1,2,3,4,5)
-          .default(1)
+          experienceLevel:joi.string()
+          .valid('Novice','Beginner','Mid-level','Advanced','Expert')
+          .default('Novice')
           .required()
      })
      try{
           const value = await schema.validateAsync(req.body)
-          console.log(value)
-          
-          return res.status(201).send('okay')
+          const user = await User.findByIdAndUpdate(me.id,{
+               ...value
+          })
+          if(user){
+               return res.status(200).json({
+                    message:'updated'
+               })
+          }else return res.status(404).json({
+               error:'user not found'
+          })
      }
      catch(err){
           console.error(err)
