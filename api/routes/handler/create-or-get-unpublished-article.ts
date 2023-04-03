@@ -5,22 +5,23 @@ import {
      Response
 } from 'express'
 import short from 'short-uuid'
-
+import objectId from '../../utils/str-to-objectid';
+import _ from 'lodash'
 
 interface article {
      articleId:string
      title:string
      coverImageUrl:string
      tags:string[]
-     markdown:string
+     markdown:string,
+     status:string
 }
 async function getOrCreateUnpublishedArticle(
      req:Request,
      res:Response
 ){
-     let me : User = req.user as User
-     let userName = me['userName']
-     if(!userName){
+     let user = req.user as User
+     if(!user){
           return res.status(401).json({
                error:'Authentication required'
           })
@@ -30,40 +31,34 @@ async function getOrCreateUnpublishedArticle(
           title:'',
           coverImageUrl:'',
           tags:[],
-          markdown:''
+          markdown:'',
+          status:'edit'
      }
      try{
           
           const result = await Article.findOne({
-               owner:userName,
+               userId:objectId(user.id),
                status:'edit'
           })
           if(result){
-               articleDetail = {
-                    articleId:result.articleId,
-                    title:result.title,
-                    coverImageUrl:result.coverImageUrl,
-                    tags:result.tags,
-                    markdown:result.markdown,
-               }
-               
+               articleDetail = {..._.pick(result,['articleId','title','coverImageUrl','tags','markdown','status'])}
           }else {
+               // generating new article id
                const articleId = short(short.constants.flickrBase58,{
                     consistentLength:false
                }).generate()
                await new Article({
-                    owner:userName,
+                    userId:objectId(user.id),
                     articleId
                }).save()
-               articleDetail['articleId'] = articleId
+               articleDetail.articleId = articleId
           }
-          console.log(articleDetail)
           return res.status(200).json(articleDetail)
      }
      catch(err){
           console.error(err)
           return res.status(500).json({
-               err:err.message
+               err:err.userssage
           })
      }
 
