@@ -42,48 +42,13 @@ function markdownParser(markdown:string):string{
      // for unordered list 
      result = result.replace(/^(-)(.+)$/gm,
      '<ul><li>$2</li></ul>')
-     result = result.replace(/\n/g,'<br/>')
+     result = result.replace(/\n/g,'<p className="mb-2"></p>')
      return result
 
 }
 
-// const ans = markdownParser(`
-// ### this is heading
-// _magar2_
-// **bold** _gurung_
-// _magar_
-// **bold2** 
-// \`
-// let x =343;
-// let y =343;
-// \`
-// >
-// this is block quote what are this thing
-// fdfd
-// jfjaslkd
-// fsadjfla
-// fadsflj
-// adflaj
-
-// ![this is image](https://localhost:5000/img)
-
-// {% embed https://facebook.com %}
-
-
-// \`\`\`
-
-// let a = 343;
-// let b = 343;
-// \`\`\`
-
-
-
-// 1. naren
-// 2. magar
-
-// - naren
-// - magar
-// `)
+// const ans = markdownParser('![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/rh716orgsl90fijtymay.png)')
 // console.log(ans)
+
 
 export default markdownParser
