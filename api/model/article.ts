@@ -1,0 +1,123 @@
+
+import {db} from '../config/db'
+import mongoose from 'mongoose'
+
+const tagLimit = (tags:[string])=>tags.length <= 4
+const articleSchema = new mongoose.Schema({
+     title:{
+          type:String,
+          default:'',
+          maxLength:200,
+     },
+     articleId:{
+          type:String,
+          required:true,
+     },
+     status:{
+          type:String,
+          enum:['draft','publish','edit'],
+          default:'edit',
+          required:true
+     },
+     userId:{
+          type:mongoose.Schema.Types.ObjectId,
+          ref:'user',
+          required:true
+     },
+     tags:{
+          type:Array<String>,
+          validate:[tagLimit,'{PATH} exceeds the limit of 4'],
+          default:[]
+     },
+     likes:{
+          type:Number,
+          default:0
+     },
+     reactions:{
+          like:{
+               type:Number,
+               default:0
+          },
+          unicorn:{
+               type:Number,
+               default:0
+          },
+          explodingHead:{
+               type:Number,
+               default:0
+          },
+          raisedHands:{
+               type:Number,
+               default:0
+          },
+          fire:{
+               type:Number,
+               default:0
+          }
+     },
+     comments:{
+          type:Number,
+          default:0
+     },
+     numUsersAddedToReadingList:{
+          type:Number,
+          default:0
+     },
+     readingListUserIds:{
+          type:[
+               {
+                    type:mongoose.Types.ObjectId,
+                    ref:'users'
+               }
+          ],
+          default:[]
+     },
+     readTime:{
+          type:Number,
+          default:0
+     },
+     createdAt:{
+          type:Date,
+          default:Date.now
+     },
+     coverImageUrl:{
+          type:String,
+          default:null
+     },
+     updatedAt:{
+          type:Date,
+          default:null
+     },
+     content:{
+          type:String,
+          default:''
+     },
+     markdown:{
+          type:String,
+          default:''
+     },
+     publishedAt:{
+          type:Date,
+          default:null
+     },
+     isScheduled:{
+          type:Boolean,
+          default:false
+     },
+     url:{
+          type:String,
+          default:null
+     },
+     scheduledAt:{
+          type:Date,
+          default:null
+     },
+     views:{
+          type:Number,
+          default:0
+     }
+
+})
+
+
+export default db.model('article',articleSchema)
