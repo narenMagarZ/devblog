@@ -1,5 +1,5 @@
 import BaseController from "../base-controller";
-import {Request,Response,NextFunction} from 'express'
+import {Request,Response} from 'express'
 import getGithubAccessToken from "../../utils/get-access-token";
 import getGithubUser from "../../utils/get-github-user";
 import {MISSING_PARAMETERS,USER_CREATED,USER_LOGGED_IN,AUTH_FAILED,USER_PROFILE_UPDATED,USER_NOT_FOUND,MISSING_USERNAME} from '../../config/constants'
@@ -11,6 +11,8 @@ import createArticleLink from "../../utils/create-article-link";
 import { IRequest } from "../../interfaces";
 import getGithubUserRepos from "../../utils/get-user-github-repos";
 import formatDateToMMMDDYYYY from "../../utils/formatDateToMMMDDYYYY";
+import followerService from '../../services/followers'
+
 
 class UserController extends BaseController{
      constructor(){
@@ -76,24 +78,23 @@ class UserController extends BaseController{
           const{id:userId}=req.userData
           try{
                const user = await userService.getUserByUsername(userId,username)
-               console.log(user,'user')
                if(_.isEmpty(user)){
                     return this.sendErrorResponse(res,404,USER_NOT_FOUND)
                }
-               const {repoUrl,articles,createdAt,...userDetail} = user[0]
-               const githubRepos = getGithubUserRepos(repoUrl)
+               const {reposUrl,articles,createdAt,...userDetail} = user[0]
+               const githubRepos = await getGithubUserRepos(reposUrl)
                const isMe = user[0].username === username
                const formattedArticles = articles.map(article=>{
-                    const url = createArticleLink(article.title,article.articleId)
-                    const publishedAt = formatDateToMMMDDYYYY(article.publishedAt)
-                    return {
-                         ...article,
-                         url,
-                         publishedAt
-                    }
+               const url = createArticleLink(article.title,article.articleId)
+               const publishedAt = formatDateToMMMDDYYYY(article.publishedAt)
+               return {
+                    ...article,
+                    url,
+                    publishedAt
+               }
                })
                const joinedOn = formatDateToMMMDDYYYY(createdAt)
-               return this.sendSuccessResponse(res,200,{
+               return this.sendSuccessResponseWithData(res,200,{
                     ...userDetail,
                     joinedOn,
                     repos:githubRepos,
@@ -104,6 +105,54 @@ class UserController extends BaseController{
           catch(err){
                return this.sendErrorResponse(res,400,err.message)
           }
+     }
+     async followUser(req:IRequest,res:Response){
+          const{userId:followeeId}=req.params
+          const{id:followerId}=req.userData
+          if(!followeeId){
+               return this.sendErrorResponse(res,400,MISSING_USERNAME)
+          }
+          try{
+               const existingFollower = await followerService.findExistingFollower(followerId,followeeId)
+               if(existingFollower){
+                    return this.sendErrorResponse(res,409,'You are already following the user')
+               }
+               await followerService.createFollower(followerId,followeeId)
+               return this.sendSuccessResponse(res,201,'Follower created successfully')
+
+          }
+          catch(err){
+               return this.sendErrorResponse(res,400,err.message)
+          }
+     }
+     async unFollowUser(req:IRequest,res:Response){
+          const{userId:followeeId}=req.params
+          const{id:followerId}=req.userData
+          try{
+               const existingFollower = await followerService.findExistingFollower(followerId,followeeId)
+               if(!existingFollower){
+                    return this.sendErrorResponse(res,4404,'You are not following the user')
+               }
+               await followerService.removeFollower(followerId,followeeId)
+               return this.sendSuccessResponse(res,201,'Unfollowed successfully')
+          }
+          catch(err){
+               return this.sendErrorResponse(res,400,err.message)
+          }
+     }
+
+     async addArticleToReadingList(req:IRequest,res:Response){
+          const {articleId} = req.params
+          const{id:userId}=req.userData
+          try{
+               
+          }
+          catch(err){
+               return this.sendErrorResponse(res,400,err.message)
+          }
+     }
+     async removeArticleFromReadingList(req:IRequest,res:Response){
+
      }
      
 }
