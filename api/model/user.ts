@@ -10,6 +10,15 @@ const userSchema = new mongoose.Schema({
                return username.toLowerCase()
           }
      },
+     readingList:{
+          type:[
+               {
+                    type:mongoose.Types.ObjectId,
+                    ref:'articles'
+               }
+          ],
+          default:[]
+     },
      name:{
           type:String,
           required:true
@@ -23,7 +32,7 @@ const userSchema = new mongoose.Schema({
           required:true,
           unique:true
      },
-     repoUrl:{
+     reposUrl:{
           type:String,
           default:null,
      },
