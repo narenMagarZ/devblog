@@ -17,13 +17,13 @@ class UserService {
           return user
      }
      async createGithubUser(githubUser:any,email:string){
-          const {login:username,name,location,repoUrl,avatar}=githubUser
+          const {login:username,name,location,repos_url,avatar}=githubUser
           const nameOrDefault = name||username
           const user = await new User({
                username,
                name:nameOrDefault,
                location,
-               repoUrl,
+               reposUrl:repos_url,
                email,
                avatar
           }).save()
@@ -33,6 +33,10 @@ class UserService {
           const {dashboardAggregation} = userAggregationBuilder
           const dashboardData = await User.aggregate(dashboardAggregation(userId))
           return dashboardData
+     }
+     async getUserByUsernames(username:string){
+          const user = await User.findOne({username})
+          return user
      }
 }
 
